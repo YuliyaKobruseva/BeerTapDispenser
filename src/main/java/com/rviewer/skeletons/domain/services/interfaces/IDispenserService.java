@@ -16,6 +16,6 @@ public class IDispenserService implements DispenserService {
 
     @Override
     public Dispenser createDispenser(DispenserCreateRequest dispenserCreateRequest) {
-        return dispenserRepository.save(DispenserMapper.INSTANCE.toDispenser(dispenserCreateRequest));
+        return dispenserRepository.save(DispenserMapper.INSTANCE.dispenserCreateRequestToDispenser(dispenserCreateRequest));
     }
 }

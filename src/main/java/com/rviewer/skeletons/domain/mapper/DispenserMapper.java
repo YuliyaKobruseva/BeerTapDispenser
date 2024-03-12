@@ -10,6 +10,8 @@ import org.mapstruct.factory.Mappers;
 public interface DispenserMapper {
     DispenserMapper INSTANCE = Mappers.getMapper(DispenserMapper.class);
 
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "status", ignore = true)
     @Mapping(source = "flowVolume", target = "flowVolume")
-    Dispenser toDispenser(DispenserCreateRequest request);
+    Dispenser dispenserCreateRequestToDispenser(DispenserCreateRequest request);
 }

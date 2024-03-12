@@ -10,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -19,15 +20,21 @@ public class DispenserController {
 
     private DispenserService dispenserService;
 
-    @PostMapping
-    public ResponseEntity<Dispenser> createDispenser(@RequestBody DispenserCreateRequest createRequest) {
-        Dispenser dispenser = dispenserService.createDispenser(createRequest);
-        logger.debug("Dispenser created correctly with id : " + dispenser.getId());
-        return new ResponseEntity<>(dispenser, HttpStatus.CREATED);
+    public DispenserController(DispenserService dispenserService) {
+        this.dispenserService = dispenserService;
     }
+
+    @PostMapping
+    public ResponseEntity<Dispenser> createDispenser(@Validated @RequestBody DispenserCreateRequest createRequest) {
+        Dispenser dispenser = dispenserService.createDispenser(createRequest);
+        logger.debug("Dispenser created correctly with id: {}", dispenser.getId());
+        return ResponseEntity.status(HttpStatus.CREATED).body(dispenser);
+    }
+
 
     @PutMapping("/{id}/status")
     public ResponseEntity<Void> changeStatus(@PathVariable Long id, @RequestBody DispenserStatusRequest dispenserStatusRequest) {
+
         logger.debug("Status of the tap changed correctly to : " + dispenserStatusRequest.getStatus());
         return new ResponseEntity<>(HttpStatus.ACCEPTED);
     }
