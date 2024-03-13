@@ -34,7 +34,7 @@ public class DispenserController {
 
     @PutMapping("/{id}/status")
     public ResponseEntity<Void> changeStatus(@PathVariable Long id, @RequestBody DispenserStatusRequest dispenserStatusRequest) {
-
+        dispenserService.changeStatus(id, dispenserStatusRequest);
         logger.debug("Status of the tap changed correctly to : " + dispenserStatusRequest.getStatus());
         return new ResponseEntity<>(HttpStatus.ACCEPTED);
     }
