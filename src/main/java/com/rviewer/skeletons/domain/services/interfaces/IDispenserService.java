@@ -1,7 +1,8 @@
 package com.rviewer.skeletons.domain.services.interfaces;
 
-import com.rviewer.skeletons.domain.dto.DispenserCreateRequest;
-import com.rviewer.skeletons.domain.dto.DispenserStatusRequest;
+import com.rviewer.skeletons.domain.dto.requests.DispenserCreateRequest;
+import com.rviewer.skeletons.domain.dto.requests.DispenserStatusRequest;
+import com.rviewer.skeletons.domain.dto.responses.DispenserRevenueResponse;
 import com.rviewer.skeletons.domain.enums.DispenserStatusEnum;
 import com.rviewer.skeletons.domain.exceptions.InvalidStatusException;
 import com.rviewer.skeletons.domain.exceptions.StatusAlreadySetException;
@@ -19,6 +20,7 @@ import org.springframework.stereotype.Service;
 import javax.persistence.EntityNotFoundException;
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 public class IDispenserService implements DispenserService {
@@ -61,6 +63,24 @@ public class IDispenserService implements DispenserService {
         updateDispenserStatus(dispenser, newStatus);
 
         updateHistoryLog(dispenser, newStatus);
+    }
+
+    /**
+     * @param id
+     */
+    @Override
+    public DispenserRevenueResponse calculateRevenue(Long id) {
+        findDispenserById(id);
+
+        List<History> historyList = retrieveAllHistoryForDispenser(id);
+
+        double totalRevenue = calculateTotalRevenue(historyList);
+
+        DispenserRevenueResponse dispenserRevenueResponse = new DispenserRevenueResponse();
+        dispenserRevenueResponse.setAmount(totalRevenue);
+        dispenserRevenueResponse.setUsages(historyList);
+
+        return dispenserRevenueResponse;
     }
 
     private Dispenser findDispenserById(Long id) {
@@ -128,5 +148,15 @@ public class IDispenserService implements DispenserService {
             long durationInSeconds = Duration.between(history.getOpenedAt(), history.getClosedAt()).getSeconds();
             return durationInSeconds * history.getFlowVolume() * PriceList.PRICE_BEER_A;
         }
+    }
+
+    private List<History> retrieveAllHistoryForDispenser(Long dispenserId) {
+        return historyRepository.findAllByDispenserId(dispenserId);
+    }
+
+    public double calculateTotalRevenue(List<History> historyList) {
+        return historyList.stream()
+                .mapToDouble(History::getTotalSpent)
+                .sum();
     }
 }

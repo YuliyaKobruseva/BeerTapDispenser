@@ -1,9 +1,9 @@
 package com.rviewer.skeletons.infrastructure.controllers;
 
-import com.rviewer.skeletons.domain.dto.DispenserCreateRequest;
-import com.rviewer.skeletons.domain.dto.DispenserStatusRequest;
+import com.rviewer.skeletons.domain.dto.requests.DispenserCreateRequest;
+import com.rviewer.skeletons.domain.dto.requests.DispenserStatusRequest;
 import com.rviewer.skeletons.domain.model.Dispenser;
-import com.rviewer.skeletons.domain.responses.DispenserRevenue;
+import com.rviewer.skeletons.domain.dto.responses.DispenserRevenueResponse;
 import com.rviewer.skeletons.domain.services.DispenserService;
 
 import org.slf4j.Logger;
@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.*;
 public class DispenserController {
     private static final Logger logger = LoggerFactory.getLogger(DispenserController.class);
 
-    private DispenserService dispenserService;
+    private final DispenserService dispenserService;
 
     public DispenserController(DispenserService dispenserService) {
         this.dispenserService = dispenserService;
@@ -35,12 +35,13 @@ public class DispenserController {
     @PutMapping("/{id}/status")
     public ResponseEntity<Void> changeStatus(@Validated @PathVariable Long id, @Validated @RequestBody DispenserStatusRequest dispenserStatusRequest) {
         dispenserService.changeStatus(id, dispenserStatusRequest);
-        logger.debug("Status of the tap changed correctly to : " + dispenserStatusRequest.getStatus());
+        logger.debug("Status of the tap changed correctly to : {}", dispenserStatusRequest.getStatus());
         return new ResponseEntity<>(HttpStatus.ACCEPTED);
     }
 
     @GetMapping("/{id}/spending")
-    public ResponseEntity<DispenserRevenue> getDispenserRevenue(@Validated @PathVariable Long id) {
-        return new ResponseEntity<>(HttpStatus.OK);
+    public ResponseEntity<DispenserRevenueResponse> getDispenserRevenue(@Validated @PathVariable Long id) {
+        DispenserRevenueResponse dispenserRevenueResponse = dispenserService.calculateRevenue(id);
+        return ResponseEntity.status(HttpStatus.OK).body(dispenserRevenueResponse);
     }
 }

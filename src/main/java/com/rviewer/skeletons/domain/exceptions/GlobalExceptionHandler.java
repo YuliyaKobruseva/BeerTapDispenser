@@ -8,6 +8,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
+import javax.persistence.EntityNotFoundException;
+
 @ControllerAdvice
 @Getter
 public class GlobalExceptionHandler {
@@ -36,7 +38,11 @@ public class GlobalExceptionHandler {
                 .body("Failed to process status: " + ex.getMessage());
     }
 
-    // Example of a custom error response class
+    @ExceptionHandler(EntityNotFoundException.class)
+    public ResponseEntity<String> handleEntityNotFoundException(EntityNotFoundException exception) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(exception.getMessage());
+    }
+
     static class ErrorResponse {
         private final int status;
         private final String error;

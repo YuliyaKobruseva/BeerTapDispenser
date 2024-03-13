@@ -1,4 +1,4 @@
-package com.rviewer.skeletons.domain.dto;
+package com.rviewer.skeletons.domain.dto.requests;
 
 import lombok.Getter;
 import lombok.Setter;
