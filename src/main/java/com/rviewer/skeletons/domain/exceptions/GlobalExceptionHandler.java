@@ -24,6 +24,18 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
+    @ExceptionHandler(StatusAlreadySetException.class)
+    public ResponseEntity<String> handleStatusAlreadySetException(StatusAlreadySetException ex) {
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.CONFLICT);
+    }
+
+    @ExceptionHandler(InvalidStatusException.class)
+    public ResponseEntity<String> handleInvalidStatusException(InvalidStatusException ex) {
+        return ResponseEntity
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body("Failed to process status: " + ex.getMessage());
+    }
+
     // Example of a custom error response class
     static class ErrorResponse {
         private final int status;

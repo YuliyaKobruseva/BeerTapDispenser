@@ -33,14 +33,14 @@ public class DispenserController {
 
 
     @PutMapping("/{id}/status")
-    public ResponseEntity<Void> changeStatus(@PathVariable Long id, @RequestBody DispenserStatusRequest dispenserStatusRequest) {
+    public ResponseEntity<Void> changeStatus(@Validated @PathVariable Long id, @Validated @RequestBody DispenserStatusRequest dispenserStatusRequest) {
         dispenserService.changeStatus(id, dispenserStatusRequest);
         logger.debug("Status of the tap changed correctly to : " + dispenserStatusRequest.getStatus());
         return new ResponseEntity<>(HttpStatus.ACCEPTED);
     }
 
     @GetMapping("/{id}/spending")
-    public ResponseEntity<DispenserRevenue> getDispenserRevenue(@PathVariable Long id) {
+    public ResponseEntity<DispenserRevenue> getDispenserRevenue(@Validated @PathVariable Long id) {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 }
