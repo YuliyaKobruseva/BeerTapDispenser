@@ -1,6 +1,5 @@
 package com.rviewer.skeletons.domain.dto.responses;
 
-import com.rviewer.skeletons.domain.model.History;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -10,11 +9,16 @@ import java.util.List;
 @Setter
 public class DispenserRevenueResponse {
     private double amount;
-    private List<History> usages;
+    private List<UsageDto> usages;
 
     // Constructors
     public DispenserRevenueResponse() {
         //Do nothing
+    }
+
+    public DispenserRevenueResponse(double amount, List<UsageDto> usages) {
+        this.amount = amount;
+        this.usages = usages;
     }
 
 }

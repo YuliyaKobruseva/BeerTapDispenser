@@ -15,7 +15,7 @@ public class Dispenser {
     private Long id;
     private Double flowVolume; // liters per second
     @Enumerated(EnumType.STRING)
-    private DispenserStatusEnum status = DispenserStatusEnum.CLOSED;
+    private DispenserStatusEnum status = DispenserStatusEnum.CLOSE;
 
     public Dispenser() {}
 

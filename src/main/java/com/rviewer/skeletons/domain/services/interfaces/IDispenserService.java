@@ -3,6 +3,7 @@ package com.rviewer.skeletons.domain.services.interfaces;
 import com.rviewer.skeletons.domain.dto.requests.DispenserCreateRequest;
 import com.rviewer.skeletons.domain.dto.requests.DispenserStatusRequest;
 import com.rviewer.skeletons.domain.dto.responses.DispenserRevenueResponse;
+import com.rviewer.skeletons.domain.dto.responses.UsageDto;
 import com.rviewer.skeletons.domain.enums.DispenserStatusEnum;
 import com.rviewer.skeletons.domain.exceptions.InvalidStatusException;
 import com.rviewer.skeletons.domain.exceptions.StatusAlreadySetException;
@@ -21,6 +22,7 @@ import javax.persistence.EntityNotFoundException;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class IDispenserService implements DispenserService {
@@ -72,7 +74,7 @@ public class IDispenserService implements DispenserService {
     public DispenserRevenueResponse calculateRevenue(Long id) {
         findDispenserById(id);
 
-        List<History> historyList = retrieveAllHistoryForDispenser(id);
+        List<UsageDto> historyList = retrieveAllHistoryForDispenser(id);
 
         double totalRevenue = calculateTotalRevenue(historyList);
 
@@ -86,6 +88,11 @@ public class IDispenserService implements DispenserService {
     private Dispenser findDispenserById(Long id) {
         return dispenserRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Dispenser not found with id: " + id));
+    }
+
+    private History findHistoryLogByDispenserIdAndStatusOpen(Long id) {
+        return historyRepository.findByDispenserIdAndOpenedAtIsNotNullAndClosedAtIsNull(id)
+                .orElseThrow(() -> new EntityNotFoundException("Dispenser with status open not found with id: " + id));
     }
 
     private DispenserStatusEnum parseStatus(String status) {
@@ -111,10 +118,10 @@ public class IDispenserService implements DispenserService {
 
     private void updateHistoryLog(Dispenser dispenser, DispenserStatusEnum newStatus) {
         switch (newStatus) {
-            case OPENED:
+            case OPEN:
                 openTap(dispenser);
                 break;
-            case CLOSED:
+            case CLOSE:
                 closeTap(dispenser);
                 break;
             default:
@@ -122,15 +129,17 @@ public class IDispenserService implements DispenserService {
                 throw new IllegalArgumentException("Invalid status value: " + newStatus);
         }
     }
+
     private void openTap(Dispenser dispenser) {
         History history = new History();
         history.setDispenser(dispenser);
         history.setOpenedAt(LocalDateTime.now());
+        history.setFlowVolume(dispenser.getFlowVolume());
         historyRepository.save(history);
     }
 
     private void closeTap(Dispenser dispenser) {
-        History history = findOpenHistoryForDispenser(dispenser.getId());
+        History history = findHistoryLogByDispenserIdAndStatusOpen(dispenser.getId());
         history.setClosedAt(LocalDateTime.now());
         history.setTotalSpent(calculateUsageSpent(history));
         historyRepository.save(history);
@@ -150,13 +159,20 @@ public class IDispenserService implements DispenserService {
         }
     }
 
-    private List<History> retrieveAllHistoryForDispenser(Long dispenserId) {
-        return historyRepository.findAllByDispenserId(dispenserId);
+    private List<UsageDto> retrieveAllHistoryForDispenser(Long dispenserId) {
+        List<History> histories = historyRepository.findAllByDispenserId(dispenserId);
+
+        List<UsageDto> usages = histories.stream()
+                .map(history -> new UsageDto(history.getOpenedAt(), history.getClosedAt(),
+                        history.getFlowVolume(), history.getTotalSpent()))
+                .collect(Collectors.toList());
+
+        return usages;
     }
 
-    public double calculateTotalRevenue(List<History> historyList) {
+    public double calculateTotalRevenue(List<UsageDto> historyList) {
         return historyList.stream()
-                .mapToDouble(History::getTotalSpent)
+                .mapToDouble(UsageDto::getTotalSpent)
                 .sum();
     }
 }
