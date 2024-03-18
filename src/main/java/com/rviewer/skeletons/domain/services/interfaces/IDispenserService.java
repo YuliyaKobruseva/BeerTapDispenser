@@ -31,10 +31,10 @@ public class IDispenserService implements DispenserService {
 
     private final DispenserRepository dispenserRepository;
     private final HistoryRepository historyRepository;
-
     private final DispenserMapper dispenserMapper;
 
-    public IDispenserService(DispenserRepository dispenserRepository, HistoryRepository historyRepository, DispenserMapper dispenserMapper) {
+    public IDispenserService(DispenserRepository dispenserRepository, HistoryRepository historyRepository,
+                             DispenserMapper dispenserMapper) {
         this.dispenserRepository = dispenserRepository;
         this.historyRepository = historyRepository;
         this.dispenserMapper = dispenserMapper;
@@ -144,12 +144,6 @@ public class IDispenserService implements DispenserService {
         history.setTotalSpent(calculateUsageSpent(history));
         historyRepository.save(history);
     }
-
-    private History findOpenHistoryForDispenser(Long dispenserId) {
-        return historyRepository.findByDispenserId(dispenserId)
-                .orElseThrow(() -> new EntityNotFoundException("History log not found for dispenser with id: " + dispenserId));
-    }
-
     private double calculateUsageSpent(History history) {
         if (history.getClosedAt() == null) {
             return 0.00;
@@ -162,12 +156,10 @@ public class IDispenserService implements DispenserService {
     private List<UsageDto> retrieveAllHistoryForDispenser(Long dispenserId) {
         List<History> histories = historyRepository.findAllByDispenserId(dispenserId);
 
-        List<UsageDto> usages = histories.stream()
+        return histories.stream()
                 .map(history -> new UsageDto(history.getOpenedAt(), history.getClosedAt(),
                         history.getFlowVolume(), history.getTotalSpent()))
                 .collect(Collectors.toList());
-
-        return usages;
     }
 
     public double calculateTotalRevenue(List<UsageDto> historyList) {
